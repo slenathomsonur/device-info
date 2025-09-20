@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Manager</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: var(--light);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(44, 62, 80, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: var(--primary);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid var(--secondary);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: var(--light);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--light);
+            opacity: 0.8;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: rgba(52, 73, 94, 0.7);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .info-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .info-label {
+            font-size: 0.9rem;
+            color: var(--light);
+            opacity: 0.7;
+        }
+        
+        .info-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 5px;
+            color: var(--light);
+        }
+        
+        .battery-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+        
+        .battery-level {
+            width: 100%;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        
+        .battery-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), var(--warning));
+            border-radius: 15px;
+            transition: width 0.5s ease;
+        }
+        
+        .battery-percentage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        
+        .browser-section {
+            grid-column: 1 / -1;
+        }
+        
+        .browser-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        input[type="url"] {
+            flex: 1;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 25px;
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 1rem;
+        }
+        
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            background: var(--secondary);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        .browser-window {
+            height: 300px;
+            border: 2px solid var(--secondary);
+            border-radius: 10px;
+            overflow: hidden;
+            background: white;
+        }
+        
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .permission-note {
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9rem;
+            color: var(--light);
+            opacity: 0.7;
+        }
+        
+        .bluetooth-devices {
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .device-list {
+            list-style: none;
+        }
+        
+        .device-list li {
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            margin-bottom: 5px;
+            border-radius: 5px;
+        }
+        
+        .icon {
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Device Manager</h1>
+            <p class="subtitle">Monitor your device's resources and browse the web</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="card">
+                <h2 class="card-title">
+                    <span class="icon">📱</span>
+                    Device Information
+                </h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Device Type</div>
+                        <div class="info-value" id="device-type">Detecting...</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Operating System</div>
+                        <div class="info-value" id="operating-system">Detecting...</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Browser</div>
+                        <div class="info-value" id="browser-info">Detecting...</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Screen Resolution</div>
+                        <div class="info-value" id="screen-resolution">Detecting...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title">
+                    <span class="icon">📍</span>
+                    Location
+                </h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Latitude</div>
+                        <div class="info-value" id="latitude">Not available</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Longitude</div>
+                        <div class="info-value" id="longitude">Not available</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Accuracy</div>
+                        <div class="info-value" id="accuracy">Not available</div>
+                    </div>
+                    <div class="info-item">
+                        <button id="get-location">Get Location</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title">
+                    <span class="icon">🔋</span>
+                    Battery Status
+                </h2>
+                <div class="battery-container">
+                    <div class="battery-level">
+                        <div class="battery-fill" id="battery-fill"></div>
+                        <div class="battery-percentage" id="battery-percentage">Not available</div>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Charging Status</div>
+                            <div class="info-value" id="charging-status">Not available</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Battery Health</div>
+                            <div class="info-value" id="battery-health">Not available</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title">
+                    <span class="icon">📶</span>
+                    Connectivity
+                </h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Internet Connection</div>
+                        <div class="info-value" id="connection-type">Detecting...</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Network Speed</div>
+                        <div class="info-value" id="network-speed">Unknown</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Bluetooth</div>
+                        <div class="info-value">
+                            <button id="scan-bluetooth">Scan Devices</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="bluetooth-devices">
+                    <ul class="device-list" id="bluetooth-devices-list">
+                        <li>No devices found yet</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card browser-section">
+                <h2 class="card-title">
+                    <span class="icon">🌐</span>
+                    Web Browser
+                </h2>
+                <div class="browser-controls">
+                    <input type="url" id="url-input" placeholder="Enter a URL (e.g., https://www.example.com)">
+                    <button id="go-button">Go</button>
+                </div>
+                <div class="browser-window">
+                    <iframe id="browser-frame" src="about:blank"></iframe>
+                </div>
+            </div>
+        </div>
+        
+        <div class="permission-note">
+            Note: Some features require your permission to access device information.
+        </div>
+    </div>
+
+    <script>
+        // Device Information
+        function detectDevice() {
+            const userAgent = navigator.userAgent;
+            let deviceType = "Unknown";
+            let os = "Unknown";
+            
+            // Detect device type
+            if (/android/i.test(userAgent)) {
+                deviceType = "Android Phone";
+            } else if (/iPad|iPhone|iPod/.test(userAgent)) {
+                deviceType = "iPhone/iPad";
+            } else if (/Windows Phone/i.test(userAgent)) {
+                deviceType = "Windows Phone";
+            } else if (/Windows NT/i.test(userAgent)) {
+                deviceType = "Windows PC";
+            } else if (/Macintosh/i.test(userAgent)) {
+                deviceType = "Mac";
+            } else if (/Linux/i.test(userAgent)) {
+                deviceType = "Linux PC";
+            }
+            
+            // Detect OS
+            if (/Windows NT 10.0/i.test(userAgent)) {
+                os = "Windows 10/11";
+            } else if (/Windows NT 6.3/i.test(userAgent)) {
+                os = "Windows 8.1";
+            } else if (/Windows NT 6.2/i.test(userAgent)) {
+                os = "Windows 8";
+            } else if (/Windows NT 6.1/i.test(userAgent)) {
+                os = "Windows 7";
+            } else if (/Macintosh/i.test(userAgent)) {
+                os = "macOS";
+            } else if (/Android/i.test(userAgent)) {
+                os = "Android";
+            } else if (/iOS|iPhone|iPad|iPod/i.test(userAgent)) {
+                os = "iOS";
+            } else if (/Linux/i.test(userAgent)) {
+                os = "Linux";
+            }
+            
+            // Detect browser
+            let browser = "Unknown";
+            if (/Chrome/.test(userAgent) && !/Edg/.test(userAgent)) {
+                browser = "Chrome";
+            } else if (/Firefox/.test(userAgent)) {
+                browser = "Firefox";
+            } else if (/Safari/.test(userAgent) && !/Chrome/.test(userAgent)) {
+                browser = "Safari";
+            } else if (/Edg/.test(userAgent)) {
+                browser = "Edge";
+            }
+            
+            document.getElementById('device-type').textContent = deviceType;
+            document.getElementById('operating-system').textContent = os;
+            document.getElementById('browser-info').textContent = browser;
+            document.getElementById('screen-resolution').textContent = `${window.screen.width} × ${window.screen.height}`;
+        }
+        
+        // Location
+        document.getElementById('get-location').addEventListener('click', () => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        document.getElementById('latitude').textContent = position.coords.latitude.toFixed(6);
+                        document.getElementById('longitude').textContent = position.coords.longitude.toFixed(6);
+                        document.getElementById('accuracy').textContent = `${position.coords.accuracy} meters`;
+                    },
+                    (error) => {
+                        alert('Error getting location: ' + error.message);
+                    }
+                );
+            } else {
+                alert('Geolocation is not supported by this browser.');
+            }
+        });
+        
+        // Battery Status
+        function updateBatteryStatus() {
+            if ('getBattery' in navigator) {
+                navigator.getBattery().then((battery) => {
+                    const updateAllBatteryInfo = () => {
+                        updateChargeInfo();
+                        updateLevelInfo();
+                    };
+                    
+                    const updateChargeInfo = () => {
+                        document.getElementById('charging-status').textContent = battery.charging ? "Charging" : "Not charging";
+                    };
+                    
+                    const updateLevelInfo = () => {
+                        const levelPercent = battery.level * 100;
+                        document.getElementById('battery-percentage').textContent = `${levelPercent}%`;
+                        document.getElementById('battery-fill').style.width = `${levelPercent}%`;
+                        
+                        if (levelPercent > 80) {
+                            document.getElementById('battery-health').textContent = "Excellent";
+                            document.getElementById('battery-fill').style.background = "linear-gradient(90deg, #2ecc71, #27ae60)";
+                        } else if (levelPercent > 50) {
+                            document.getElementById('battery-health').textContent = "Good";
+                            document.getElementById('battery-fill').style.background = "linear-gradient(90deg, #f39c12, #e67e22)";
+                        } else if (levelPercent > 20) {
+                            document.getElementById('battery-health').textContent = "Fair";
+                            document.getElementById('battery-fill').style.background = "linear-gradient(90deg, #e67e22, #d35400)";
+                        } else {
+                            document.getElementById('battery-health').textContent = "Low";
+                            document.getElementById('battery-fill').style.background = "linear-gradient(90deg, #e74c3c, #c0392b)";
+                        }
+                    };
+                    
+                    updateAllBatteryInfo();
+                    
+                    battery.addEventListener('chargingchange', updateChargeInfo);
+                    battery.addEventListener('levelchange', updateLevelInfo);
+                });
+            } else {
+                document.getElementById('battery-percentage').textContent = "API not supported";
+                document.getElementById('charging-status').textContent = "API not supported";
+                document.getElementById('battery-health').textContent = "API not supported";
+            }
+        }
+        
+        // Connectivity
+        function updateConnectionInfo() {
+            const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            
+            if (connection) {
+                document.getElementById('connection-type').textContent = connection.type.charAt(0).toUpperCase() + connection.type.slice(1);
+                
+                if (connection.downlink) {
+                    document.getElementById('network-speed').textContent = `${connection.downlink} Mbps`;
+                }
+                
+                connection.addEventListener('change', () => {
+                    document.getElementById('connection-type').textContent = connection.type.charAt(0).toUpperCase() + connection.type.slice(1);
+                    if (connection.downlink) {
+                        document.getElementById('network-speed').textContent = `${connection.downlink} Mbps`;
+                    }
+                });
+            } else {
+                document.getElementById('connection-type').textContent = "Information not available";
+            }
+        }
+        
+        // Bluetooth (simulated as actual Bluetooth API has limited browser support)
+        document.getElementById('scan-bluetooth').addEventListener('click', () => {
+            const deviceList = document.getElementById('bluetooth-devices-list');
+            deviceList.innerHTML = '<li>Scanning for devices...</li>';
+            
+            setTimeout(() => {
+                const devices = [
+                    'Wireless Headphones',
+                    'Smart Watch',
+                    'Wireless Keyboard',
+                    'Fitness Tracker'
+                ];
+                
+                deviceList.innerHTML = '';
+                
+                devices.forEach(device => {
+                    const li = document.createElement('li');
+                    li.textContent = device;
+                    deviceList.appendChild(li);
+                });
+            }, 2000);
+        });
+        
+        // Browser functionality
+        document.getElementById('go-button').addEventListener('click', () => {
+            let url = document.getElementById('url-input').value;
+            
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+            
+            document.getElementById('browser-frame').src = url;
+        });
+        
+        document.getElementById('url-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('go-button').click();
+            }
+        });
+        
+        // Initialize all features
+        detectDevice();
+        updateBatteryStatus();
+        updateConnectionInfo();
+        
+        // Update time continuously
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('time').textContent = now.toLocaleTimeString();
+        }, 1000);
+    </script>
+</body>
+</html>
